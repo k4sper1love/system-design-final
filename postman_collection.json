@@ -1,0 +1,284 @@
+{
+  "info": {
+    "name": "Payment System API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth Service",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone_number\": \"+79001234567\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone_number\": \"+79001234567\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login and get authentication token"
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/auth/profile",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Get user profile information"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment Service",
+      "item": [
+        {
+          "name": "Top Up Balance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"user_id\": 1,\n    \"amount\": 1000\n}"
+            },
+            "url": {
+              "raw": "http://localhost/payment/balance/top-up",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["payment", "balance", "top-up"]
+            },
+            "description": "Add money to user balance"
+          }
+        },
+        {
+          "name": "Transfer Money",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"sender_id\": 1,\n    \"recipient_id\": 2,\n    \"amount\": 500\n}"
+            },
+            "url": {
+              "raw": "http://localhost/payment/transactions/transfer",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["payment", "transactions", "transfer"]
+            },
+            "description": "Transfer money between users"
+          }
+        },
+        {
+          "name": "Get Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/payment/balance/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["payment", "balance", "1"]
+            },
+            "description": "Get user balance by ID"
+          }
+        },
+        {
+          "name": "Get Transaction History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/payment/transactions/user/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["payment", "transactions", "user", "1"]
+            },
+            "description": "Get transaction history for user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fraud Service",
+      "item": [
+        {
+          "name": "Create Fraud Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"description\": \"High amount rule\",\n    \"threshold\": 10000\n}"
+            },
+            "url": {
+              "raw": "http://localhost/fraud/rules",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["fraud", "rules"]
+            },
+            "description": "Create a new fraud detection rule"
+          }
+        },
+        {
+          "name": "Get All Rules",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/fraud/rules",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["fraud", "rules"]
+            },
+            "description": "Get all fraud detection rules"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notification Service",
+      "item": [
+        {
+          "name": "Test SMS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone\": \"+79001234567\",\n    \"message\": \"Test message\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost/notification/test-sms",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["notification", "test-sms"]
+            },
+            "description": "Send a test SMS"
+          }
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/notification/notifications",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["notification", "notifications"]
+            },
+            "description": "Get notification history"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": "your_jwt_token",
+      "type": "string"
+    }
+  ]
+}

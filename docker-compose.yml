@@ -1,8 +1,9 @@
-version: '3'
+version: '3.8'
+
 services:
   postgres:
-    image: postgres:13
-    container_name: postgres
+    image: postgres:15
+    container_name: payment-system-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -11,18 +12,154 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
-    image: redis:latest
-    container_name: redis
+    image: redis:7
+    container_name: payment-system-redis
     ports:
       - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   nats:
     image: nats:latest
-    container_name: nats
+    container_name: payment-system-nats
     ports:
       - "4222:4222"
+      - "8222:8222"
+    command: "--http_port 8222"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8222/varz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: payment-system-auth
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=payment_system
+      - DB_PORT=5432
+      - JWT_SECRET=your_jwt_secret_key_here
+      - PORT=8081
+    ports:
+      - "8081:8081"
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment-system-payment
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=payment_system
+      - DB_PORT=5432
+      - NATS_URL=nats://nats:4222
+      - AUTH_SERVICE_URL=http://auth-service:8081
+      - FRAUD_SERVICE_URL=fraud-service:50051
+      - PORT=8082
+    ports:
+      - "8082:8082"
+
+  fraud-service:
+    build:
+      context: ./fraud-service
+      dockerfile: Dockerfile
+    container_name: payment-system-fraud
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - PORT=8083
+      - GRPC_PORT=50051
+    ports:
+      - "8083:8083"
+      - "50051:50051"
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: payment-system-notification
+    restart: always
+    depends_on:
+      nats:
+        condition: service_healthy
+    environment:
+      - NATS_URL=nats://nats:4222
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-your_account_sid}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-your_auth_token}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER:-your_phone_number}
+      - PORT=8084
+    ports:
+      - "8084:8084"
+
+  nginx:
+    image: nginx:latest
+    container_name: payment-system-nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - payment-service
+      - fraud-service
+      - notification-service
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: payment-system-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  redis-commander:
+    image: rediscommander/redis-commander
+    container_name: payment-system-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8085:8081"
+    depends_on:
+      - redis
 
 volumes:
   postgres_data:
+  redis_data:

@@ -1,66 +1,115 @@
-# Online payment system with fraud monitoring
-The online payment system is designed to provide a secure, scalable, and efficient platform for processing payments while integrating real-time fraud detection.
+# Payment System - Microservice Architecture
 
-## Main Features of the Implemented System
-- User registration and authentication using phone number/password with JWT token generation.
-- Secure password storage using bcrypt hashing.
-- Payment processing, including balance top-up and transaction handling.
-- Real-time fraud monitoring for transactions using rules stored in Redis.
-- Optimistic Locking to prevent race conditions during balance updates.
-- Notification service for sending SMS alerts about transaction statuses using Twilio.
-- API Gateway for routing requests, enforcing JWT-based authentication, and implementing Rate Limiting using the Token Bucket algorithm.
-- PostgreSQL for storing user data, balances, and transaction history.
-- Redis for caching fraud monitoring rules and counters.
-- NATS message broker for asynchronous communication between microservices.
-- Docker Compose setup for PostgreSQL, Redis, and NATS.
+## Overview
 
-## Prerequisites
-- Go (1.20 or later)
-- Docker and Docker Compose
-- PostgreSQL
-- Redis
-- NATS 
-- Twilio Account
+A complete payment processing system built with microservices architecture, allowing for:
+- User authentication with phone numbers
+- Balance management and fund transfers
+- Real-time fraud detection
+- Transaction notifications
 
-## Project Structure
-The project is organized into separate folders for each service:
-- auth-service/
-- payment-service/
-- fraud-service/
-- notification-service/
-- api-gateway/
-- docker-compose.yml
+## System Components
 
-## Technologies Used
-- **Backend** : Go + Echo Framework
-- **Database** : PostgreSQL 
-- **Caching** : Redis 
-- **Messaging** : NATS
-- **Authentication** : JWT 
-- **Notifications** : Twilio
-- **Rate** **Limiting** : Token Bucket Algorithm
-- **Load** **Balancing** : Nginx (API Gateway)
-- **Containerization** : Docker
+- **API Gateway** (Nginx): Routes requests to appropriate services
+- **Auth Service**: Handles user registration, authentication, and JWT management
+- **Payment Service**: Manages user balances and payment transactions
+- **Fraud Detection Service**: Real-time fraud monitoring using rules-based analysis
+- **Notification Service**: Sends transaction notifications via SMS
+- **Supporting Infrastructure**:
+  - NATS: Event messaging between services
+  - PostgreSQL: Persistent data storage
+  - Redis: Caching and fraud detection rules
 
-## Environment Setup
-1. Start Docker Containers:
+## Quick Start
+
 ```bash
-docker-compose up -d
-```
-2. Running the Services. Each service can be run independently using go run. Ensure Docker containers are running before starting the services.
-```bash
-go run auth-service/main.go
-```
-```bash
-go run payment-service/main.go
-```
-```bash
-go run fraud-service/main.go
-```
-```bash
-go run notification-service/main.go
-```
-```bash
-go run api-gateway/main.go
+# Clone repository and start all services
+docker-compose up
+
+# Or rebuild containers before starting
+docker-compose up --build
 ```
 
+## Service Endpoints
+
+After deployment, services are available at:
+
+- **API Gateway**: http://localhost:80 - Main entry point for all services
+- **Auth Service**: http://localhost:8081 - Authentication APIs
+- **Payment Service**: http://localhost:8082 - Transaction and balance APIs
+- **Fraud Service**: http://localhost:8083 - Fraud detection APIs
+- **Notification Service**: http://localhost:8084 - Notification APIs
+- **PgAdmin**: http://localhost:5050 - PostgreSQL admin interface
+- **Redis Commander**: http://localhost:8085 - Redis data browser
+
+## API Documentation
+
+A complete Postman collection is included in the repository (`postman_collection.json`), containing examples of all API endpoints.
+
+### API Categories:
+- **Authentication**: Registration, login, token refresh
+- **Payment Operations**: Balance top-up, transfers, transaction history
+- **Fraud Management**: Create/manage fraud detection rules
+- **Notifications**: SMS delivery management
+
+## Development
+
+### Project Structure
+
+```
+├── api-gateway/        # API Gateway service
+├── auth-service/       # Authentication service
+├── fraud-service/      # Fraud detection service
+├── notification-service/ # Notification service
+├── payment-service/    # Payment service
+├── shared/             # Shared proto files and generated code
+├── docker-compose.yml  # Docker Compose configuration
+├── nginx.conf          # Nginx configuration
+├── postman_collection.json # API documentation
+└── README.md           # This file
+```
+
+### Running Individual Services
+
+For development, you can run services individually:
+
+```bash
+# Start auth service (repeat pattern for other services)
+cd auth-service && go run .
+```
+
+## Infrastructure Details
+
+### Database Schema
+
+**PostgreSQL**:
+- `users`: User accounts and credentials
+- `balances`: Account balances with optimistic locking
+- `transactions`: Transaction records
+- `refresh_tokens`: JWT refresh tokens
+
+**Redis**:
+- Fraud monitoring rules
+- Suspicious transaction cache
+
+### Administrative Tools
+
+- **PgAdmin**: PostgreSQL database administration
+  - URL: http://localhost:5050
+  - Default login: admin@example.com / admin
+  
+- **Redis Commander**: Redis inspection and management
+  - URL: http://localhost:8085
+
+## Technical Features
+
+- **Authentication**: JWT-based with access/refresh token mechanism
+- **Communication**: 
+  - REST APIs between services and clients
+  - gRPC for fraud detection (high performance)
+  - NATS for event-driven notifications
+- **Security**: 
+  - Phone validation
+  - bcrypt password hashing
+  - Token blacklisting
+- **Data Integrity**: Optimistic locking for transactions

@@ -10,6 +10,7 @@ import (
 )
 
 var db *gorm.DB
+var tokenBlacklist = make(map[string]time.Time)
 
 func initDB() {
 	dsn := "host=localhost user=postgres password=postgres dbname=payment_system port=5432 sslmode=disable TimeZone=Asia/Almaty"
@@ -20,7 +21,7 @@ func initDB() {
 	}
 	fmt.Println("Connected to PostgreSQL")
 
-	err = db.AutoMigrate(&User{})
+	err = db.AutoMigrate(&User{}, &RefreshToken{})
 	if err != nil {
 		log.Fatal("Migration failed")
 	}
@@ -33,4 +34,13 @@ type User struct {
 	PasswordHash string `gorm:"not null"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+}
+
+type RefreshToken struct {
+	ID        uint   `gorm:"primaryKey"`
+	UserID    uint   `gorm:"not null"`
+	Token     string `gorm:"unique;not null"`
+	ExpiresAt time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

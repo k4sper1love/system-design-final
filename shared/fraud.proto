@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package fraud;
+
+option go_package = "shared/fraudpb";
+
+service FraudChecker {
+  rpc CheckTransaction (FraudCheckRequest) returns (FraudCheckResponse);
+}
+
+message FraudCheckRequest {
+  uint64 transaction_id = 1;
+  uint64 user_id = 2;
+  double amount = 3;
+}
+
+message FraudCheckResponse {
+  double fraud_score = 1;
+  string status = 2;
+}
